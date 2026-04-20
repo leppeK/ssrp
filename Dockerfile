@@ -1,9 +1,10 @@
-FROM golang AS build
+FROM golang:1.23 AS build
 WORKDIR /app
-COPY ./app /app
-RUN CGO_ENABLED=0 GOOS=linux go build .
+COPY ./app/go.mod ./app/go.sum ./
+RUN go mod download
+COPY ./app .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o ssrp .
 
 FROM scratch
-WORKDIR /app
-COPY --from=build /app/ssrp /app/ssrp
-ENTRYPOINT ["./ssrp"]
+COPY --from=build /app/ssrp /ssrp
+ENTRYPOINT ["/ssrp"]
